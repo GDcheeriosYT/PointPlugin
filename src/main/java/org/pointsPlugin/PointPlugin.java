@@ -1,4 +1,4 @@
-package org.example;
+package org.pointsPlugin;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
