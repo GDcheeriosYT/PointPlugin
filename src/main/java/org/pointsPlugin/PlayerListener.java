@@ -1,24 +1,93 @@
-﻿package org.pointsPlugin;
+package org.pointsPlugin;
 
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.inventory.InventoryPickupItemEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 public class PlayerListener implements Listener {
-    @EventHandler
-    public void OnPlayerMove(PlayerMoveEvent event) {
-        event.getPlayer().sendMessage("You moved!");
+    private final PointPlugin plugin;
+    private final PointScoreboard scoreboard;
+
+    public PlayerListener(PointPlugin plugin, PointScoreboard scoreboard) {
+        this.plugin = plugin;
+        this.scoreboard = scoreboard;
     }
 
-    private PlayerData getPlayerData(Player player) {
-        return new PlayerData(
-                player.getHealth(),
-                player.getFoodLevel(),
-                calculateArmorPoints(player)
+    @EventHandler
+    public void OnPlayerHurt(EntityDamageEvent entityDamageEvent) {
+        if (entityDamageEvent.getEntity() instanceof Player) PublishPlayerData((Player) entityDamageEvent.getEntity());
+    }
+
+    @EventHandler
+    public void OnPlayerRegen(EntityRegainHealthEvent event) {
+        if (event.getEntity() instanceof Player) PublishPlayerData((Player) event.getEntity());
+    }
+
+    @EventHandler
+    public void OnFoodLevelChange(FoodLevelChangeEvent event) {
+        if (event.getEntity() instanceof Player player) {
+            PublishPlayerData(player);
+        }
+    }
+
+    @EventHandler
+    public void OnInventoryChange(InventoryPickupItemEvent event) {
+        if (event.getInventory().getHolder() instanceof Player player) {
+            PublishPlayerData(player);
+        }
+    }
+
+    @EventHandler
+    public void OnPlayerJoin(PlayerJoinEvent event) {
+        PublishPlayerData(event.getPlayer());
+    }
+
+    
+
+    @EventHandler
+    public void OnPlayerRespawn(PlayerRespawnEvent event) {
+        PublishPlayerData(event.getPlayer());
+    }
+    
+    @EventHandler
+    public void OnPlayerQuit(PlayerQuitEvent event) {
+        DisconnectPlayer(event.getPlayer());
+    }
+
+
+    private void highlightPlayer(Player player) {
+        PotionEffect highlight = new PotionEffect(
+                PotionEffectType.GLOWING,
+                Integer.MAX_VALUE,
+                0,
+                false,
+                false
         );
+
+        player.addPotionEffect(highlight);
+    }
+
+    public void PublishPlayerData(Player player) {
+        PlayerData playerData = getPlayerData(player);
+        highlightPlayer(player);
+        plugin.UpdatePlayerStats(playerData);
+        scoreboard.setPoint(player, (int) playerData.points);
+    }
+
+    public void DisconnectPlayer(Player player) {
+        plugin.RemovePlayerStats(player.getName());
+        scoreboard.setPoint(player, 0);
     }
 
     private double calculateArmorPoints(Player player) {
@@ -106,16 +175,15 @@ public class PlayerListener implements Listener {
         return armorPoints; // Total armor points
     }
 
-    private double getPoints(Player player) {
-        double points = 0;
-
-        points += player.getHealth();
-        points *= 1 + (double) player.getFoodLevel() / 20;
-        points *= 1 + (double) calculateArmorPoints(player) / 20;
-
-        // we need to scale points based on health
-        points = points * player.getHealth() / 20;
-
-        return points;
+    private PlayerData getPlayerData(Player player) {
+        return new PlayerData(
+                player.getHealth(),
+                player.getFoodLevel(),
+                calculateArmorPoints(player),
+                player.getName(),
+                player.getUniqueId(),
+                player.isOnline(),
+                player.getLocation()
+        );
     }
 }
