@@ -18,6 +18,6 @@ java {
 }
 
 dependencies {
-    implementation("org.spigotmc:spigot-api:1.21-R0.1-SNAPSHOT")
+    implementation("org.spigotmc:spigot-api:1.21.4-R0.1-SNAPSHOT")
     implementation("org.java-websocket:Java-WebSocket:1.5.3")
 }

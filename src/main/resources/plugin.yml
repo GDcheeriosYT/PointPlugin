@@ -1,7 +1,7 @@
 ﻿name: PointPlugin
 version: 1.0
 main: org.pointsPlugin.PointPlugin
-api-version: 1.21
+api-version: 1.21.4
 author: GDcheerios
 description: a point system for minecraft servers to provide a player point system.
 commands:
