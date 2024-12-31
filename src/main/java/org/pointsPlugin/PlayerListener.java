@@ -100,6 +100,19 @@ public class PlayerListener implements Listener {
 
                 // Assign armor points based on armor type
                 switch (type) {
+                    case NETHERITE_HELMET:
+                        armorPoints += 5;
+                        break;
+                    case NETHERITE_CHESTPLATE:
+                        armorPoints += 10;
+                        break;
+                    case NETHERITE_LEGGINGS:
+                        armorPoints += 8;
+                        break;
+                    case NETHERITE_BOOTS:
+                        armorPoints += 5;
+                        break;
+
                     case DIAMOND_HELMET:
                         armorPoints += 3;
                         break;
