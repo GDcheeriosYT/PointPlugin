@@ -1,16 +1,11 @@
 package org.pointsPlugin;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityRegainHealthEvent;
-import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.inventory.InventoryPickupItemEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -25,41 +20,15 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler
-    public void OnPlayerHurt(EntityDamageEvent entityDamageEvent) {
-        if (entityDamageEvent.getEntity() instanceof Player) PublishPlayerData((Player) entityDamageEvent.getEntity());
-    }
-
-    @EventHandler
-    public void OnPlayerRegen(EntityRegainHealthEvent event) {
-        if (event.getEntity() instanceof Player) PublishPlayerData((Player) event.getEntity());
-    }
-
-    @EventHandler
-    public void OnFoodLevelChange(FoodLevelChangeEvent event) {
-        if (event.getEntity() instanceof Player player) {
-            PublishPlayerData(player);
-        }
-    }
-
-    @EventHandler
-    public void OnInventoryChange(InventoryPickupItemEvent event) {
-        if (event.getInventory().getHolder() instanceof Player player) {
-            PublishPlayerData(player);
-        }
-    }
-
-    @EventHandler
     public void OnPlayerJoin(PlayerJoinEvent event) {
         PublishPlayerData(event.getPlayer());
     }
 
-    
-
     @EventHandler
-    public void OnPlayerRespawn(PlayerRespawnEvent event) {
+    public void OnPlayerMove(PlayerMoveEvent event){
         PublishPlayerData(event.getPlayer());
     }
-    
+
     @EventHandler
     public void OnPlayerQuit(PlayerQuitEvent event) {
         DisconnectPlayer(event.getPlayer());
@@ -67,15 +36,9 @@ public class PlayerListener implements Listener {
 
 
     private void highlightPlayer(Player player) {
-        PotionEffect highlight = new PotionEffect(
-                PotionEffectType.GLOWING,
-                Integer.MAX_VALUE,
-                0,
-                false,
-                false
-        );
-
-        player.addPotionEffect(highlight);
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 100, 1));
+        });
     }
 
     public void PublishPlayerData(Player player) {
@@ -83,6 +46,12 @@ public class PlayerListener implements Listener {
         highlightPlayer(player);
         plugin.UpdatePlayerStats(playerData);
         scoreboard.setPoint(player, (int) playerData.points);
+    }
+
+    public void PublishAllPlayersData() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            PublishPlayerData(player);
+        }
     }
 
     public void DisconnectPlayer(Player player) {

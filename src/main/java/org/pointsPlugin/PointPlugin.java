@@ -22,13 +22,34 @@ public class PointPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // Register Bukkit event listener
-        this.playerListener = new PlayerListener(this, new PointScoreboard());
-        registerEvents();
+        try {
+            // Register Bukkit event listener
+            this.playerListener = new PlayerListener(this, new PointScoreboard());
+            registerEvents();
+            getLogger().info("PlayerListener registered successfully.");
 
+            // Start the HTTP server
+            startHttpServer();
+            getLogger().info("HTTP Server started successfully.");
 
-        // Start the HTTP server
-        startHttpServer();
+            // Register the update all players command
+            if (getCommand("refresh") != null) {
+                getCommand("refresh").setExecutor(new UpdateAllPlayersCommand(playerListener));
+                getLogger().info("Command '/refresh' registered successfully.");
+            } else {
+                getLogger().severe("Command '/refresh' not found in plugin.yml!");
+            }
+
+            // Confirm successful plugin enablement
+            getLogger().info("PointPlugin has been enabled!");
+        } catch (Exception e) {
+            // Log any errors to identify issues
+            getLogger().severe("Failed to enable PointPlugin! Error: " + e.getMessage());
+            e.printStackTrace();
+
+            // Gracefully disable the plugin
+            getServer().getPluginManager().disablePlugin(this);
+        }
     }
 
     @Override
